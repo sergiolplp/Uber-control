@@ -147,25 +147,29 @@
       document.getElementById("mesAnterior").textContent = `Mes anterior: ${formatearPesos(parseFloat(mesAnterior))}`;
     }
     function limpiarCampos() {
-  document.getElementById("gananciaHoy").value = "";
-  document.getElementById("kmRecorridos").value = "";
-  document.getElementById("valorNafta").value = "";
-  document.getElementById("resultado").textContent = "";
+  if (confirm("¿Estás seguro de que querés limpiar los campos?")) {
+    document.getElementById("gananciaHoy").value = "";
+    document.getElementById("kmRecorridos").value = "";
+    document.getElementById("valorNafta").value = "";
+    document.getElementById("resultado").textContent = "";
+  }
 }
 
 function reiniciarTodo() {
-  localStorage.removeItem("acumuladoMes");
-  localStorage.removeItem("mesAnterior");
-  localStorage.removeItem("mesGuardado");
+  if (confirm("¿Estás seguro de que querés reiniciar todo? Se borrará el acumulado del mes y el mes anterior.")) {
+    localStorage.removeItem("acumuladoMes");
+    localStorage.removeItem("mesAnterior");
+    localStorage.removeItem("mesGuardado");
 
-  acumuladoMes = 0;
-  mesGuardado = new Date().getMonth();
+    acumuladoMes = 0;
+    mesGuardado = new Date().getMonth();
 
-  document.getElementById("acumuladoMes").textContent = "$0";
-  document.getElementById("mesAnterior").textContent = "";
-  document.getElementById("resultado").textContent = "";
+    document.getElementById("acumuladoMes").textContent = "$0";
+    document.getElementById("mesAnterior").textContent = "";
+    document.getElementById("resultado").textContent = "";
 
-  limpiarCampos();
+    limpiarCampos();
+  }
 }
   </script>
 </body>
