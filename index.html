@@ -11,6 +11,7 @@
       font-family: 'Fredoka', sans-serif;
       text-align: center;
       padding: 20px;
+      transition: background-color 0.5s, color 0.5s;
     }
 
     h1 {
@@ -44,6 +45,12 @@
     .resultado {
       margin-top: 30px;
       font-size: 1.6em;
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+    }
+
+    .resultado.mostrar {
+      opacity: 1;
     }
 
     .resultado span {
@@ -59,6 +66,33 @@
       background-color: white;
       color: black;
       cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    #historial {
+      margin-top: 30px;
+      width: 100%;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      border-collapse: collapse;
+    }
+
+    #historial th, #historial td {
+      border: 1px solid white;
+      padding: 8px;
+    }
+
+    #historial th {
+      background-color: #333;
+    }
+
+    #toggleMode {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 5px 10px;
+      font-size: 0.9em;
     }
 
     footer {
@@ -73,28 +107,41 @@
   </style>
 </head>
 <body>
+  <button id="toggleMode" onclick="toggleModo()">MODO CLARO</button>
+
   <h1>GANANCIAS UBER</h1>
   <div class="subtitulo" id="acumuladoMes">$0</div>
   <div class="mes-anterior" id="mesAnterior"></div>
 
-  <input type="text" id="gananciaHoy" placeholder="Ganancias de hoy ($)" onblur="formatearGanancia()">
-  <input type="text" id="kmRecorridos" placeholder="Km recorridos" onblur="formatearKm()">
-  <input type="text" id="valorNafta" placeholder="Valor litro de nafta ($)" onblur="formatearNafta()">
+  <input type="text" id="gananciaHoy" placeholder="Ganancias de hoy ($)" onblur="formatearGanancia()" oninput="soloNumerosConComa(this)">
+  <input type="text" id="kmRecorridos" placeholder="Km recorridos" onblur="formatearKm()" oninput="soloNumeros(this)">
+  <input type="text" id="valorNafta" placeholder="Valor litro de nafta ($)" onblur="formatearNafta()" oninput="soloNumerosConComa(this)">
 
   <br>
-  <button onclick="calcularGanancia()">CALCULAR</button>
-  <br><br>
-  <button onclick="limpiarCampos()" style="background-color: gray; color: white;">LIMPIAR CAMPOS</button>
-  <br><br>
-  <button onclick="reiniciarTodo()" style="background-color: red; color: white;">REINICIAR TODO</button>
-  
+  <button onclick="calcularGanancia()">CALCULAR</button><br>
+  <button onclick="limpiarCampos()" style="background-color: gray; color: white;">LIMPIAR CAMPOS</button><br>
+  <button onclick="reiniciarTodo()" style="background-color: red; color: white;">REINICIAR TODO</button><br>
+  <button onclick="exportarCSV()">EXPORTAR A EXCEL (.CSV)</button>
+
   <div class="resultado" id="resultado"></div>
+
+  <table id="historial" style="display:none;">
+    <thead>
+      <tr><th>Fecha</th><th>Km</th><th>Ganancia bruta</th><th>Ganancia neta</th></tr>
+    </thead>
+    <tbody id="historialBody"></tbody>
+  </table>
 
   <footer>Desarrollado por SDD.</footer>
 
   <script>
     let acumuladoMes = localStorage.getItem("acumuladoMes") ? parseFloat(localStorage.getItem("acumuladoMes")) : 0;
-    let mesGuardado = localStorage.getItem("mesGuardado") || new Date().getMonth();
+    let mesGuardado = localStorage.getItem("mesGuardado") || obtenerMesActual();
+
+    function obtenerMesActual() {
+      const hoy = new Date();
+      return hoy.getFullYear() + '-' + (hoy.getMonth() + 1);
+    }
 
     function formatearPesos(valor) {
       return valor.toLocaleString("es-AR", {
@@ -110,16 +157,19 @@
       const km = parseFloat(document.getElementById("kmRecorridos").value.replace(/[^\d]/g, "")) || 0;
       const valorNafta = parseFloat(document.getElementById("valorNafta").value.replace(/[^\d,.-]/g, "").replace(",", ".")) || 0;
 
-      const consumoLitros = km * 0.08; // 8 litros cada 100 km
+      if (!gananciaHoy || !km || !valorNafta) {
+        alert("Por favor completá todos los campos con valores válidos.");
+        return;
+      }
+
+      const consumoLitros = km * 0.08;
       const costoCombustible = consumoLitros * valorNafta;
       const gananciaNeta = gananciaHoy - costoCombustible;
 
-      // Mostrar resultado
-      document.getElementById("resultado").innerHTML = `Las ganancias de hoy fueron: <span>${formatearPesos(gananciaNeta)}</span>`;
+      document.getElementById("resultado").innerHTML = `✔️ Las ganancias de hoy fueron: <span>${formatearPesos(gananciaNeta)}</span>`;
+      document.getElementById("resultado").classList.add("mostrar");
 
-      const mesActual = new Date().getMonth();
-
-      // Si cambió el mes, guardar acumulado anterior
+      const mesActual = obtenerMesActual();
       if (mesActual != mesGuardado) {
         localStorage.setItem("mesAnterior", acumuladoMes);
         acumuladoMes = 0;
@@ -127,17 +177,49 @@
         localStorage.setItem("mesGuardado", mesActual);
       }
 
-      // Actualizar acumulado y guardar
       acumuladoMes += gananciaNeta;
       localStorage.setItem("acumuladoMes", acumuladoMes);
 
-      // Mostrar acumulado y mes anterior
       document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
-
       const mesAnterior = localStorage.getItem("mesAnterior");
       if (mesAnterior) {
         document.getElementById("mesAnterior").textContent = `Mes anterior: ${formatearPesos(parseFloat(mesAnterior))}`;
       }
+
+      const hoy = new Date().toLocaleDateString();
+      const historial = JSON.parse(localStorage.getItem("historial")) || [];
+      historial.push({ fecha: hoy, km, bruta: gananciaHoy, neta: gananciaNeta });
+      localStorage.setItem("historial", JSON.stringify(historial));
+      mostrarHistorial();
+    }
+
+    function mostrarHistorial() {
+      const historial = JSON.parse(localStorage.getItem("historial")) || [];
+      const tbody = document.getElementById("historialBody");
+      tbody.innerHTML = "";
+      historial.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${item.fecha}</td><td>${item.km} km</td><td>${formatearPesos(item.bruta)}</td><td>${formatearPesos(item.neta)}</td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById("historial").style.display = "table";
+    }
+
+    function exportarCSV() {
+      const historial = JSON.parse(localStorage.getItem("historial")) || [];
+      if (historial.length === 0) return alert("No hay datos para exportar.");
+      let csv = "Fecha,Km,Ganancia bruta,Ganancia neta\n";
+      historial.forEach(item => {
+        csv += `${item.fecha},${item.km},${item.bruta},${item.neta}\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "historial_uber.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
     function limpiarCampos() {
@@ -146,22 +228,20 @@
         document.getElementById("kmRecorridos").value = "";
         document.getElementById("valorNafta").value = "";
         document.getElementById("resultado").textContent = "";
+        document.getElementById("resultado").classList.remove("mostrar");
       }
     }
 
     function reiniciarTodo() {
-      if (confirm("¿Estás seguro de que querés reiniciar todo? Se borrará el acumulado del mes y el mes anterior.")) {
-        localStorage.removeItem("acumuladoMes");
-        localStorage.removeItem("mesAnterior");
-        localStorage.removeItem("mesGuardado");
-
+      if (confirm("¿Estás seguro de que querés reiniciar todo?")) {
+        localStorage.clear();
         acumuladoMes = 0;
-        mesGuardado = new Date().getMonth();
-
+        mesGuardado = obtenerMesActual();
         document.getElementById("acumuladoMes").textContent = "$0";
         document.getElementById("mesAnterior").textContent = "";
         document.getElementById("resultado").textContent = "";
-
+        document.getElementById("resultado").classList.remove("mostrar");
+        document.getElementById("historial").style.display = "none";
         limpiarCampos();
       }
     }
@@ -196,12 +276,34 @@
       }
     }
 
-    // Mostrar acumulado y mes anterior al cargar
+    function soloNumeros(input) {
+      input.value = input.value.replace(/[^\d]/g, "");
+    }
+
+    function soloNumerosConComa(input) {
+      input.value = input.value.replace(/[^\d,\\.]/g, "");
+    }
+
+    function toggleModo() {
+      const body = document.body;
+      if (body.style.backgroundColor === "white") {
+        body.style.backgroundColor = "#000";
+        body.style.color = "white";
+        document.getElementById("toggleMode").textContent = "MODO CLARO";
+      } else {
+        body.style.backgroundColor = "white";
+        body.style.color = "black";
+        document.getElementById("toggleMode").textContent = "MODO OSCURO";
+      }
+    }
+
+    // Inicializar
     document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
     const mesAnterior = localStorage.getItem("mesAnterior");
     if (mesAnterior) {
       document.getElementById("mesAnterior").textContent = `Mes anterior: ${formatearPesos(parseFloat(mesAnterior))}`;
     }
+    mostrarHistorial();
   </script>
 </body>
 </html>
