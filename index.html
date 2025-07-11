@@ -292,8 +292,8 @@ body.modo-claro .menu button {
     }
 
     function limpiarFormato(input) {
-      return input.replace(/[^\d,.-]/g, "").replace(",", ".");
-    }
+  return input.replace(/\./g, "").replace(",", ".");
+}
 
     function calcularGanancia() {
       const gananciaHoy = parseFloat(limpiarFormato(document.getElementById("gananciaHoy").value)) || 0;
