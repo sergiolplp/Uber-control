@@ -262,15 +262,8 @@ body.modo-claro footer {
     }
 
     function toggleModo() {
-      const body = document.body;
-      if (body.style.backgroundColor === "white") {
-        body.style.backgroundColor = "#000";
-        body.style.color = "white";
-      } else {
-        body.style.backgroundColor = "white";
-        body.style.color = "black";
-      }
-    }
+  document.body.classList.toggle("modo-claro");
+}
 
     function formatearPesos(valor) {
       return valor.toLocaleString("es-AR", {
