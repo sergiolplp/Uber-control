@@ -292,7 +292,7 @@ body.modo-claro .menu button {
     }
 
     function limpiarFormato(input) {
-  return input.replace(/\./g, "").replace(",", ".");
+  return input.replace(/\$/g, "").replace(/\./g, "").replace(",", ".").replace(/\s/g, "");
 }
 
     function calcularGanancia() {
