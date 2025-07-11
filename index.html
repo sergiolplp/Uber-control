@@ -97,7 +97,7 @@
     }
 
     .subtitulo {
-      font-size: 1.5em;
+      font-size: 3em;
       color: #00ff00;
       font-weight: bold;
       margin-bottom: 20px;
@@ -152,6 +152,12 @@
       background-color: #333;
     }
 
+#botonCalcular {
+  background-color: #00ff00; /* mismo verde del título */
+  color: white;
+  font-weight: bold;
+}
+
     footer {
       position: fixed;
       bottom: 0;
@@ -185,7 +191,8 @@
     <input type="text" id="kmRecorridos" placeholder="Km recorridos">
     <input type="text" id="valorNafta" placeholder="Valor litro de nafta ($)">
 
-    <br>
+    <div style="margin-top: 20px;"></div>
+    
     <button onclick="calcularGanancia()">CALCULAR</button>
     <button onclick="limpiarCampos()" style="background-color: gray; color: white;">LIMPIAR CAMPOS</button>
     <button onclick="reiniciarTodo()" style="background-color: red; color: white;">REINICIAR TODO</button>
@@ -215,7 +222,7 @@
     <button onclick="mostrarSeccion('inicio')">VOLVER A INICIO</button>
   </div>
 
-  <footer>Desarrollado por SDD.</footer>
+  <footer>Desarrollado por SDS.</footer>
 
   <script>
     const menu = document.getElementById("menuDesplegable");
