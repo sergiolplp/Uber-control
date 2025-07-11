@@ -9,28 +9,61 @@
       background-color: #000;
       color: white;
       font-family: 'Fredoka', sans-serif;
-      text-align: center;
-      padding: 20px;
-      transition: background-color 0.5s, color 0.5s;
+      margin: 0;
+      padding: 0;
     }
-
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 10px;
+    header {
+      background-color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
     }
-
-    .subtitulo {
+    .menu-icon {
+      cursor: pointer;
       font-size: 1.5em;
-      color: #00ff00;
-      margin-bottom: 20px;
     }
-
-    .mes-anterior {
+    .titulo-header {
+      font-weight: bold;
       font-size: 1.2em;
-      color: orange;
-      margin-top: 10px;
     }
-
+    .modo {
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    .menu {
+      position: fixed;
+      top: 50px;
+      left: 0;
+      background-color: #222;
+      width: 100%;
+      display: none;
+      flex-direction: column;
+      z-index: 9;
+    }
+    .menu button {
+      background: none;
+      color: white;
+      border: none;
+      padding: 15px;
+      text-align: left;
+      font-size: 1em;
+      cursor: pointer;
+      border-bottom: 1px solid #333;
+    }
+    .seccion {
+      display: none;
+      padding: 80px 20px 60px;
+      text-align: center;
+    }
+    .activa {
+      display: block;
+    }
     input[type="text"] {
       width: 90%;
       max-width: 400px;
@@ -41,23 +74,19 @@
       border-radius: 5px;
       box-sizing: border-box;
     }
-
     .resultado {
       margin-top: 30px;
       font-size: 1.6em;
       opacity: 0;
       transition: opacity 0.5s ease-in;
     }
-
     .resultado.mostrar {
       opacity: 1;
     }
-
     .resultado span {
       color: yellow;
       font-weight: bold;
     }
-
     button {
       padding: 12px 30px;
       font-size: 1em;
@@ -66,35 +95,21 @@
       background-color: white;
       color: black;
       cursor: pointer;
-      margin-bottom: 10px;
+      margin: 10px;
     }
-
-    #historial {
-      margin-top: 30px;
-      width: 100%;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
+    table {
+      margin: 0 auto;
       border-collapse: collapse;
+      width: 95%;
+      max-width: 600px;
     }
-
-    #historial th, #historial td {
+    th, td {
       border: 1px solid white;
       padding: 8px;
     }
-
-    #historial th {
+    th {
       background-color: #333;
     }
-
-    #toggleMode {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 5px 10px;
-      font-size: 0.9em;
-    }
-
     footer {
       position: fixed;
       bottom: 0;
@@ -103,44 +118,89 @@
       color: white;
       padding: 10px 0;
       font-size: 0.9em;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <button id="toggleMode" onclick="toggleModo()">MODO CLARO</button>
+  <header>
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    <div class="titulo-header">GANANCIAS UBER</div>
+    <div class="modo" onclick="toggleModo()">MODO CLARO</div>
+  </header>
 
-  <h1>GANANCIAS UBER</h1>
-  <div class="subtitulo" id="acumuladoMes">$0</div>
-  <div class="mes-anterior" id="mesAnterior"></div>
+  <div class="menu" id="menuDesplegable">
+    <button onclick="mostrarSeccion('inicio')">CÁLCULO GANANCIA</button>
+    <button onclick="mostrarSeccion('tablaMensual')">TABLA MENSUAL</button>
+    <button onclick="mostrarSeccion('reportes')">REPORTES</button>
+  </div>
 
-  <input type="text" id="gananciaHoy" placeholder="Ganancias de hoy ($)" onblur="formatearGanancia()" oninput="soloNumerosConComa(this)">
-  <input type="text" id="kmRecorridos" placeholder="Km recorridos" onblur="formatearKm()" oninput="soloNumeros(this)">
-  <input type="text" id="valorNafta" placeholder="Valor litro de nafta ($)" onblur="formatearNafta()" oninput="soloNumerosConComa(this)">
+  <div id="inicio" class="seccion activa">
+    <div class="subtitulo" id="acumuladoMes">$0</div>
+    <div class="mes-anterior" id="mesAnterior"></div>
 
-  <br>
-  <button onclick="calcularGanancia()">CALCULAR</button><br>
-  <button onclick="limpiarCampos()" style="background-color: gray; color: white;">LIMPIAR CAMPOS</button><br>
-  <button onclick="reiniciarTodo()" style="background-color: red; color: white;">REINICIAR TODO</button><br>
-  <button onclick="exportarCSV()">EXPORTAR A EXCEL (.CSV)</button>
+    <input type="text" id="gananciaHoy" placeholder="Ganancias de hoy ($)">
+    <input type="text" id="kmRecorridos" placeholder="Km recorridos">
+    <input type="text" id="valorNafta" placeholder="Valor litro de nafta ($)">
 
-  <div class="resultado" id="resultado"></div>
+    <br>
+    <button onclick="calcularGanancia()">CALCULAR</button>
+    <button onclick="limpiarCampos()" style="background-color: gray; color: white;">LIMPIAR CAMPOS</button>
+    <button onclick="reiniciarTodo()" style="background-color: red; color: white;">REINICIAR TODO</button>
 
-  <table id="historial" style="display:none;">
-    <thead>
-      <tr><th>Fecha</th><th>Km</th><th>Ganancia bruta</th><th>Ganancia neta</th></tr>
-    </thead>
-    <tbody id="historialBody"></tbody>
-  </table>
+    <div class="resultado" id="resultado"></div>
+  </div>
+
+  <div id="tablaMensual" class="seccion">
+    <table id="historial">
+      <thead>
+        <tr><th>Fecha</th><th>Km</th><th>Ganancia bruta</th><th>Ganancia neta</th></tr>
+      </thead>
+      <tbody id="historialBody"></tbody>
+    </table>
+    <button onclick="exportarCSV()">EXPORTAR A EXCEL (.CSV)</button><br>
+    <button onclick="mostrarSeccion('inicio')">VOLVER A INICIO</button>
+  </div>
+
+  <div id="reportes" class="seccion">
+    <table id="tablaReportes">
+      <thead>
+        <tr><th>Mes</th><th>Total Ganado</th></tr>
+      </thead>
+      <tbody id="reportesBody"></tbody>
+    </table>
+    <button onclick="exportarReportes()">EXPORTAR A EXCEL (.CSV)</button><br>
+    <button onclick="mostrarSeccion('inicio')">VOLVER A INICIO</button>
+  </div>
 
   <footer>Desarrollado por SDD.</footer>
 
   <script>
-    let acumuladoMes = localStorage.getItem("acumuladoMes") ? parseFloat(localStorage.getItem("acumuladoMes")) : 0;
-    let mesGuardado = localStorage.getItem("mesGuardado") || obtenerMesActual();
+    function toggleMenu() {
+      const menu = document.getElementById("menuDesplegable");
+      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+    }
 
-    function obtenerMesActual() {
-      const hoy = new Date();
-      return hoy.getFullYear() + '-' + (hoy.getMonth() + 1);
+    function mostrarSeccion(id) {
+      document.querySelectorAll('.seccion').forEach(sec => sec.classList.remove('activa'));
+      document.getElementById(id).classList.add('activa');
+      if (id === 'tablaMensual') mostrarHistorial();
+      if (id === 'reportes') mostrarReportes();
+      document.getElementById("menuDesplegable").style.display = "none";
+    }
+
+    function toggleModo() {
+      const body = document.body;
+      const modo = document.querySelector('.modo');
+      if (body.style.backgroundColor === "white") {
+        body.style.backgroundColor = "#000";
+        body.style.color = "white";
+        modo.textContent = "MODO CLARO";
+      } else {
+        body.style.backgroundColor = "white";
+        body.style.color = "black";
+        modo.textContent = "MODO OSCURO";
+      }
     }
 
     function formatearPesos(valor) {
@@ -169,32 +229,19 @@
       document.getElementById("resultado").innerHTML = `✔️ Las ganancias de hoy fueron: <span>${formatearPesos(gananciaNeta)}</span>`;
       document.getElementById("resultado").classList.add("mostrar");
 
-      const mesActual = obtenerMesActual();
-      if (mesActual != mesGuardado) {
-        localStorage.setItem("mesAnterior", acumuladoMes);
-        acumuladoMes = 0;
-        mesGuardado = mesActual;
-        localStorage.setItem("mesGuardado", mesActual);
-      }
-
-      acumuladoMes += gananciaNeta;
-      localStorage.setItem("acumuladoMes", acumuladoMes);
-
-      document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
-      const mesAnterior = localStorage.getItem("mesAnterior");
-      if (mesAnterior) {
-        document.getElementById("mesAnterior").textContent = `Mes anterior: ${formatearPesos(parseFloat(mesAnterior))}`;
-      }
-
       const hoy = new Date().toLocaleDateString();
-      const historial = JSON.parse(localStorage.getItem("historial")) || [];
-      historial.push({ fecha: hoy, km, bruta: gananciaHoy, neta: gananciaNeta });
+      const mesActual = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
+
+      let historial = JSON.parse(localStorage.getItem("historial") || "[]");
+      historial.push({ fecha: hoy, km, bruta: gananciaHoy, neta: gananciaNeta, mes: mesActual });
       localStorage.setItem("historial", JSON.stringify(historial));
-      mostrarHistorial();
+
+      let acumuladoMes = historial.filter(e => e.mes === mesActual).reduce((acc, el) => acc + el.neta, 0);
+      document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
     }
 
     function mostrarHistorial() {
-      const historial = JSON.parse(localStorage.getItem("historial")) || [];
+      const historial = JSON.parse(localStorage.getItem("historial") || "[]");
       const tbody = document.getElementById("historialBody");
       tbody.innerHTML = "";
       historial.forEach(item => {
@@ -202,21 +249,51 @@
         tr.innerHTML = `<td>${item.fecha}</td><td>${item.km} km</td><td>${formatearPesos(item.bruta)}</td><td>${formatearPesos(item.neta)}</td>`;
         tbody.appendChild(tr);
       });
-      document.getElementById("historial").style.display = "table";
+    }
+
+    function mostrarReportes() {
+      const historial = JSON.parse(localStorage.getItem("historial") || "[]");
+      const porMes = {};
+      historial.forEach(e => {
+        porMes[e.mes] = (porMes[e.mes] || 0) + e.neta;
+      });
+      const tbody = document.getElementById("reportesBody");
+      tbody.innerHTML = "";
+      Object.keys(porMes).sort().forEach(mes => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${mes}</td><td>${formatearPesos(porMes[mes])}</td>`;
+        tbody.appendChild(tr);
+      });
     }
 
     function exportarCSV() {
-      const historial = JSON.parse(localStorage.getItem("historial")) || [];
+      const historial = JSON.parse(localStorage.getItem("historial") || "[]");
       if (historial.length === 0) return alert("No hay datos para exportar.");
       let csv = "Fecha,Km,Ganancia bruta,Ganancia neta\n";
       historial.forEach(item => {
         csv += `${item.fecha},${item.km},${item.bruta},${item.neta}\n`;
       });
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
+      descargarCSV(csv, "historial_uber.csv");
+    }
+
+    function exportarReportes() {
+      const historial = JSON.parse(localStorage.getItem("historial") || "[]");
+      const porMes = {};
+      historial.forEach(e => {
+        porMes[e.mes] = (porMes[e.mes] || 0) + e.neta;
+      });
+      let csv = "Mes,Total Ganado\n";
+      Object.keys(porMes).sort().forEach(mes => {
+        csv += `${mes},${porMes[mes]}\n`;
+      });
+      descargarCSV(csv, "reporte_mensual.csv");
+    }
+
+    function descargarCSV(contenido, nombre) {
+      const blob = new Blob([contenido], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "historial_uber.csv");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", nombre);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -235,75 +312,9 @@
     function reiniciarTodo() {
       if (confirm("¿Estás seguro de que querés reiniciar todo?")) {
         localStorage.clear();
-        acumuladoMes = 0;
-        mesGuardado = obtenerMesActual();
-        document.getElementById("acumuladoMes").textContent = "$0";
-        document.getElementById("mesAnterior").textContent = "";
-        document.getElementById("resultado").textContent = "";
-        document.getElementById("resultado").classList.remove("mostrar");
-        document.getElementById("historial").style.display = "none";
-        limpiarCampos();
+        location.reload();
       }
     }
-
-    function formatearGanancia() {
-      let input = document.getElementById("gananciaHoy");
-      let valor = parseFloat(input.value.replace(/[^\d,.-]/g, "").replace(",", "."));
-      if (!isNaN(valor)) {
-        input.value = formatearPesos(valor);
-      } else {
-        input.value = "";
-      }
-    }
-
-    function formatearNafta() {
-      let input = document.getElementById("valorNafta");
-      let valor = parseFloat(input.value.replace(/[^\d,.-]/g, "").replace(",", "."));
-      if (!isNaN(valor)) {
-        input.value = formatearPesos(valor);
-      } else {
-        input.value = "";
-      }
-    }
-
-    function formatearKm() {
-      let input = document.getElementById("kmRecorridos");
-      let valor = parseInt(input.value.replace(/[^\d]/g, ""));
-      if (!isNaN(valor)) {
-        input.value = valor + " kilómetros";
-      } else {
-        input.value = "";
-      }
-    }
-
-    function soloNumeros(input) {
-      input.value = input.value.replace(/[^\d]/g, "");
-    }
-
-    function soloNumerosConComa(input) {
-      input.value = input.value.replace(/[^\d,\\.]/g, "");
-    }
-
-    function toggleModo() {
-      const body = document.body;
-      if (body.style.backgroundColor === "white") {
-        body.style.backgroundColor = "#000";
-        body.style.color = "white";
-        document.getElementById("toggleMode").textContent = "MODO CLARO";
-      } else {
-        body.style.backgroundColor = "white";
-        body.style.color = "black";
-        document.getElementById("toggleMode").textContent = "MODO OSCURO";
-      }
-    }
-
-    // Inicializar
-    document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
-    const mesAnterior = localStorage.getItem("mesAnterior");
-    if (mesAnterior) {
-      document.getElementById("mesAnterior").textContent = `Mes anterior: ${formatearPesos(parseFloat(mesAnterior))}`;
-    }
-    mostrarHistorial();
   </script>
 </body>
 </html>
