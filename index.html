@@ -380,6 +380,19 @@
 
     // Mostrar valores guardados al cargar
     mostrarSeccion('inicio');
+    // Evitar letras: solo permitir números, coma y punto (para decimales)
+function soloNumeros(event) {
+  const tecla = event.key;
+  const permitido = "0123456789.,";
+  if (!permitido.includes(tecla) && tecla !== "Backspace" && tecla !== "Tab") {
+    event.preventDefault();
+  }
+}
+
+// Asignar el filtro a los campos
+["gananciaHoy", "valorNafta", "kmRecorridos"].forEach(id => {
+  document.getElementById(id).addEventListener("keypress", soloNumeros);
+});
   </script>
 </body>
 </html>
