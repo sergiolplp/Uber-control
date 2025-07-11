@@ -30,7 +30,7 @@
       margin-top: 10px;
     }
 
-    input[type="number"] {
+    input[type="text"] {
       width: 90%;
       max-width: 400px;
       padding: 10px;
@@ -77,16 +77,16 @@
   <div class="subtitulo" id="acumuladoMes">$0</div>
   <div class="mes-anterior" id="mesAnterior"></div>
 
-  <input type="number" id="gananciaHoy" placeholder="Ganancias de hoy ($)">
-  <input type="number" id="kmRecorridos" placeholder="Km recorridos">
-  <input type="number" id="valorNafta" placeholder="Valor litro de nafta ($)">
+  <input type="text" id="gananciaHoy" placeholder="Ganancias de hoy ($)" onblur="formatearGanancia()">
+  <input type="text" id="kmRecorridos" placeholder="Km recorridos" onblur="formatearKm()">
+  <input type="text" id="valorNafta" placeholder="Valor litro de nafta ($)" onblur="formatearNafta()">
 
   <br>
   <button onclick="calcularGanancia()">CALCULAR</button>
-<br><br>
-<button onclick="limpiarCampos()" style="background-color: gray; color: white;">LIMPIAR CAMPOS</button>
-<br><br>
-<button onclick="reiniciarTodo()" style="background-color: red; color: white;">REINICIAR TODO</button>
+  <br><br>
+  <button onclick="limpiarCampos()" style="background-color: gray; color: white;">LIMPIAR CAMPOS</button>
+  <br><br>
+  <button onclick="reiniciarTodo()" style="background-color: red; color: white;">REINICIAR TODO</button>
   
   <div class="resultado" id="resultado"></div>
 
@@ -106,9 +106,9 @@
     }
 
     function calcularGanancia() {
-      const gananciaHoy = parseFloat(document.getElementById("gananciaHoy").value) || 0;
-      const km = parseFloat(document.getElementById("kmRecorridos").value) || 0;
-      const valorNafta = parseFloat(document.getElementById("valorNafta").value) || 0;
+      const gananciaHoy = parseFloat(document.getElementById("gananciaHoy").value.replace(/[^\d,.-]/g, "").replace(",", ".")) || 0;
+      const km = parseFloat(document.getElementById("kmRecorridos").value.replace(/[^\d]/g, "")) || 0;
+      const valorNafta = parseFloat(document.getElementById("valorNafta").value.replace(/[^\d,.-]/g, "").replace(",", ".")) || 0;
 
       const consumoLitros = km * 0.08; // 8 litros cada 100 km
       const costoCombustible = consumoLitros * valorNafta;
@@ -140,37 +140,68 @@
       }
     }
 
+    function limpiarCampos() {
+      if (confirm("¿Estás seguro de que querés limpiar los campos?")) {
+        document.getElementById("gananciaHoy").value = "";
+        document.getElementById("kmRecorridos").value = "";
+        document.getElementById("valorNafta").value = "";
+        document.getElementById("resultado").textContent = "";
+      }
+    }
+
+    function reiniciarTodo() {
+      if (confirm("¿Estás seguro de que querés reiniciar todo? Se borrará el acumulado del mes y el mes anterior.")) {
+        localStorage.removeItem("acumuladoMes");
+        localStorage.removeItem("mesAnterior");
+        localStorage.removeItem("mesGuardado");
+
+        acumuladoMes = 0;
+        mesGuardado = new Date().getMonth();
+
+        document.getElementById("acumuladoMes").textContent = "$0";
+        document.getElementById("mesAnterior").textContent = "";
+        document.getElementById("resultado").textContent = "";
+
+        limpiarCampos();
+      }
+    }
+
+    function formatearGanancia() {
+      let input = document.getElementById("gananciaHoy");
+      let valor = parseFloat(input.value.replace(/[^\d,.-]/g, "").replace(",", "."));
+      if (!isNaN(valor)) {
+        input.value = formatearPesos(valor);
+      } else {
+        input.value = "";
+      }
+    }
+
+    function formatearNafta() {
+      let input = document.getElementById("valorNafta");
+      let valor = parseFloat(input.value.replace(/[^\d,.-]/g, "").replace(",", "."));
+      if (!isNaN(valor)) {
+        input.value = formatearPesos(valor);
+      } else {
+        input.value = "";
+      }
+    }
+
+    function formatearKm() {
+      let input = document.getElementById("kmRecorridos");
+      let valor = parseInt(input.value.replace(/[^\d]/g, ""));
+      if (!isNaN(valor)) {
+        input.value = valor + " kilómetros";
+      } else {
+        input.value = "";
+      }
+    }
+
     // Mostrar acumulado y mes anterior al cargar
     document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
     const mesAnterior = localStorage.getItem("mesAnterior");
     if (mesAnterior) {
       document.getElementById("mesAnterior").textContent = `Mes anterior: ${formatearPesos(parseFloat(mesAnterior))}`;
     }
-    function limpiarCampos() {
-  if (confirm("¿Estás seguro de que querés limpiar los campos?")) {
-    document.getElementById("gananciaHoy").value = "";
-    document.getElementById("kmRecorridos").value = "";
-    document.getElementById("valorNafta").value = "";
-    document.getElementById("resultado").textContent = "";
-  }
-}
-
-function reiniciarTodo() {
-  if (confirm("¿Estás seguro de que querés reiniciar todo? Se borrará el acumulado del mes y el mes anterior.")) {
-    localStorage.removeItem("acumuladoMes");
-    localStorage.removeItem("mesAnterior");
-    localStorage.removeItem("mesGuardado");
-
-    acumuladoMes = 0;
-    mesGuardado = new Date().getMonth();
-
-    document.getElementById("acumuladoMes").textContent = "$0";
-    document.getElementById("mesAnterior").textContent = "";
-    document.getElementById("resultado").textContent = "";
-
-    limpiarCampos();
-  }
-}
   </script>
 </body>
 </html>
