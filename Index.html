@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ganancias Uber</title>
+  <style>
+    body {
+      background-color: #000;
+      color: white;
+      font-family: 'Fredoka', sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .subtitulo {
+      font-size: 1.5em;
+      color: #00ff00;
+      margin-bottom: 20px;
+    }
+
+    .mes-anterior {
+      font-size: 1.2em;
+      color: orange;
+      margin-top: 10px;
+    }
+
+    input[type="number"] {
+      width: 90%;
+      max-width: 400px;
+      padding: 10px;
+      margin: 10px auto;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .resultado {
+      margin-top: 30px;
+      font-size: 1.6em;
+    }
+
+    .resultado span {
+      color: yellow;
+      font-weight: bold;
+    }
+
+    button {
+      padding: 12px 30px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      background-color: white;
+      color: black;
+      cursor: pointer;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: #111;
+      color: white;
+      padding: 10px 0;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <h1>GANANCIAS UBER</h1>
+  <div class="subtitulo" id="acumuladoMes">$0</div>
+  <div class="mes-anterior" id="mesAnterior"></div>
+
+  <input type="number" id="gananciaHoy" placeholder="Ganancias de hoy ($)">
+  <input type="number" id="kmRecorridos" placeholder="Km recorridos">
+  <input type="number" id="valorNafta" placeholder="Valor litro de nafta ($)">
+
+  <br>
+  <button onclick="calcularGanancia()">CALCULAR</button>
+
+  <div class="resultado" id="resultado"></div>
+
+  <footer>Desarrollado por SDD.</footer>
+
+  <script>
+    let acumuladoMes = localStorage.getItem("acumuladoMes") ? parseFloat(localStorage.getItem("acumuladoMes")) : 0;
+    let mesGuardado = localStorage.getItem("mesGuardado") || new Date().getMonth();
+
+    function formatearPesos(valor) {
+      return valor.toLocaleString("es-AR", { style: "currency", currency: "ARS" });
+    }
+
+    function calcularGanancia() {
+      const gananciaHoy = parseFloat(document.getElementById("gananciaHoy").value) || 0;
+      const km = parseFloat(document.getElementById("kmRecorridos").value) || 0;
+      const valorNafta = parseFloat(document.getElementById("valorNafta").value) || 0;
+
+      const consumoLitros = km * 0.08; // 8 litros cada 100 km
+      const costoCombustible = consumoLitros * valorNafta;
+      const gananciaNeta = gananciaHoy - costoCombustible;
+
+      // Mostrar resultado
+      document.getElementById("resultado").innerHTML = `Las ganancias de hoy fueron: <span>${formatearPesos(gananciaNeta)}</span>`;
+
+      const mesActual = new Date().getMonth();
+
+      // Si cambió el mes, guardar acumulado anterior
+      if (mesActual != mesGuardado) {
+        localStorage.setItem("mesAnterior", acumuladoMes);
+        acumuladoMes = 0;
+        mesGuardado = mesActual;
+        localStorage.setItem("mesGuardado", mesActual);
+      }
+
+      // Actualizar acumulado y guardar
+      acumuladoMes += gananciaNeta;
+      localStorage.setItem("acumuladoMes", acumuladoMes);
+
+      // Mostrar
+      document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
+
+      const mesAnterior = localStorage.getItem("mesAnterior");
+      if (mesAnterior) {
+        document.getElementById("mesAnterior").textContent = `Mes anterior: ${formatearPesos(parseFloat(mesAnterior))}`;
+      }
+    }
+
+    // Mostrar valores guardados al cargar
+    document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
+    const mesAnterior = localStorage.getItem("mesAnterior");
+    if (mesAnterior) {
+      document.getElementById("mesAnterior").textContent = `Mes anterior: ${formatearPesos(parseFloat(mesAnterior))}`;
+    }
+  </script>
+</body>
+</html>
