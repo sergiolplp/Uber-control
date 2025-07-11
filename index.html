@@ -12,6 +12,7 @@
       margin: 0;
       padding: 0;
     }
+
     header {
       background-color: #111;
       display: flex;
@@ -24,28 +25,43 @@
       right: 0;
       z-index: 10;
     }
+
     .menu-icon {
       cursor: pointer;
       font-size: 1.5em;
     }
+
     .titulo-header {
       font-weight: bold;
       font-size: 1.2em;
     }
+
     .modo {
       cursor: pointer;
-      font-size: 0.9em;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(to right, white 50%, black 50%);
+      border: 1px solid #555;
     }
+
     .menu {
       position: fixed;
       top: 50px;
       left: 0;
-      background-color: #222;
       width: 100%;
-      display: none;
-      flex-direction: column;
+      background-color: #222;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s ease-out;
       z-index: 9;
     }
+
+    .menu.abierto {
+      max-height: 200px;
+      transition: max-height 0.4s ease-in;
+    }
+
     .menu button {
       background: none;
       color: white;
@@ -55,15 +71,19 @@
       font-size: 1em;
       cursor: pointer;
       border-bottom: 1px solid #333;
+      width: 100%;
     }
+
     .seccion {
       display: none;
       padding: 80px 20px 60px;
       text-align: center;
     }
+
     .activa {
       display: block;
     }
+
     input[type="text"] {
       width: 90%;
       max-width: 400px;
@@ -73,20 +93,38 @@
       border: none;
       border-radius: 5px;
       box-sizing: border-box;
+      text-align: center;
     }
+
+    .subtitulo {
+      font-size: 1.5em;
+      color: #00ff00;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .mes-anterior {
+      font-size: 1.2em;
+      color: orange;
+      margin-top: 10px;
+    }
+
     .resultado {
       margin-top: 30px;
       font-size: 1.6em;
       opacity: 0;
       transition: opacity 0.5s ease-in;
     }
+
     .resultado.mostrar {
       opacity: 1;
     }
+
     .resultado span {
       color: yellow;
       font-weight: bold;
     }
+
     button {
       padding: 12px 30px;
       font-size: 1em;
@@ -97,19 +135,23 @@
       cursor: pointer;
       margin: 10px;
     }
+
     table {
       margin: 0 auto;
       border-collapse: collapse;
       width: 95%;
       max-width: 600px;
     }
+
     th, td {
       border: 1px solid white;
       padding: 8px;
     }
+
     th {
       background-color: #333;
     }
+
     footer {
       position: fixed;
       bottom: 0;
@@ -126,7 +168,7 @@
   <header>
     <div class="menu-icon" onclick="toggleMenu()">☰</div>
     <div class="titulo-header">GANANCIAS UBER</div>
-    <div class="modo" onclick="toggleModo()">MODO CLARO</div>
+    <div class="modo" onclick="toggleModo()" title="Cambiar modo"></div>
   </header>
 
   <div class="menu" id="menuDesplegable">
@@ -176,9 +218,10 @@
   <footer>Desarrollado por SDD.</footer>
 
   <script>
+    const menu = document.getElementById("menuDesplegable");
+
     function toggleMenu() {
-      const menu = document.getElementById("menuDesplegable");
-      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+      menu.classList.toggle("abierto");
     }
 
     function mostrarSeccion(id) {
@@ -186,20 +229,17 @@
       document.getElementById(id).classList.add('activa');
       if (id === 'tablaMensual') mostrarHistorial();
       if (id === 'reportes') mostrarReportes();
-      document.getElementById("menuDesplegable").style.display = "none";
+      menu.classList.remove("abierto");
     }
 
     function toggleModo() {
       const body = document.body;
-      const modo = document.querySelector('.modo');
       if (body.style.backgroundColor === "white") {
         body.style.backgroundColor = "#000";
         body.style.color = "white";
-        modo.textContent = "MODO CLARO";
       } else {
         body.style.backgroundColor = "white";
         body.style.color = "black";
-        modo.textContent = "MODO OSCURO";
       }
     }
 
@@ -212,22 +252,18 @@
       });
     }
 
-    function calcularGanancia() {
-      const gananciaHoy = parseFloat(document.getElementById("gananciaHoy").value.replace(/[^\d,.-]/g, "").replace(",", ".")) || 0;
-      const km = parseFloat(document.getElementById("kmRecorridos").value.replace(/[^\d]/g, "")) || 0;
-      const valorNafta = parseFloat(document.getElementById("valorNafta").value.replace(/[^\d,.-]/g, "").replace(",", ".")) || 0;
+    function limpiarFormato(input) {
+      return input.replace(/[^\d,.-]/g, "").replace(",", ".");
+    }
 
-      if (!gananciaHoy || !km || !valorNafta) {
-        alert("Por favor completá todos los campos con valores válidos.");
-        return;
-      }
+    function calcularGanancia() {
+      const gananciaHoy = parseFloat(limpiarFormato(document.getElementById("gananciaHoy").value)) || 0;
+      const km = parseFloat(document.getElementById("kmRecorridos").value.replace(/[^\d]/g, "")) || 0;
+      const valorNafta = parseFloat(limpiarFormato(document.getElementById("valorNafta").value)) || 0;
 
       const consumoLitros = km * 0.08;
       const costoCombustible = consumoLitros * valorNafta;
       const gananciaNeta = gananciaHoy - costoCombustible;
-
-      document.getElementById("resultado").innerHTML = `✔️ Las ganancias de hoy fueron: <span>${formatearPesos(gananciaNeta)}</span>`;
-      document.getElementById("resultado").classList.add("mostrar");
 
       const hoy = new Date().toLocaleDateString();
       const mesActual = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
@@ -235,6 +271,9 @@
       let historial = JSON.parse(localStorage.getItem("historial") || "[]");
       historial.push({ fecha: hoy, km, bruta: gananciaHoy, neta: gananciaNeta, mes: mesActual });
       localStorage.setItem("historial", JSON.stringify(historial));
+
+      document.getElementById("resultado").innerHTML = `✔️ Las ganancias de hoy fueron: <span>${formatearPesos(gananciaNeta)}</span>`;
+      document.getElementById("resultado").classList.add("mostrar");
 
       let acumuladoMes = historial.filter(e => e.mes === mesActual).reduce((acc, el) => acc + el.neta, 0);
       document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
@@ -315,6 +354,25 @@
         location.reload();
       }
     }
+
+    // Formato automático al salir del campo
+    document.getElementById("gananciaHoy").addEventListener("blur", e => {
+      const val = parseFloat(limpiarFormato(e.target.value));
+      if (!isNaN(val)) e.target.value = formatearPesos(val);
+    });
+
+    document.getElementById("valorNafta").addEventListener("blur", e => {
+      const val = parseFloat(limpiarFormato(e.target.value));
+      if (!isNaN(val)) e.target.value = formatearPesos(val);
+    });
+
+    document.getElementById("kmRecorridos").addEventListener("blur", e => {
+      const val = parseInt(e.target.value.replace(/[^\d]/g, ""));
+      if (!isNaN(val)) e.target.value = `${val} km`;
+    });
+
+    // Mostrar valores guardados al cargar
+    mostrarSeccion('inicio');
   </script>
 </body>
 </html>
