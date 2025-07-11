@@ -83,7 +83,11 @@
 
   <br>
   <button onclick="calcularGanancia()">CALCULAR</button>
-
+<br><br>
+<button onclick="limpiarCampos()" style="background-color: gray; color: white;">LIMPIAR CAMPOS</button>
+<br><br>
+<button onclick="reiniciarTodo()" style="background-color: red; color: white;">REINICIAR TODO</button>
+  
   <div class="resultado" id="resultado"></div>
 
   <footer>Desarrollado por SDD.</footer>
@@ -142,6 +146,27 @@
     if (mesAnterior) {
       document.getElementById("mesAnterior").textContent = `Mes anterior: ${formatearPesos(parseFloat(mesAnterior))}`;
     }
+    function limpiarCampos() {
+  document.getElementById("gananciaHoy").value = "";
+  document.getElementById("kmRecorridos").value = "";
+  document.getElementById("valorNafta").value = "";
+  document.getElementById("resultado").textContent = "";
+}
+
+function reiniciarTodo() {
+  localStorage.removeItem("acumuladoMes");
+  localStorage.removeItem("mesAnterior");
+  localStorage.removeItem("mesGuardado");
+
+  acumuladoMes = 0;
+  mesGuardado = new Date().getMonth();
+
+  document.getElementById("acumuladoMes").textContent = "$0";
+  document.getElementById("mesAnterior").textContent = "";
+  document.getElementById("resultado").textContent = "";
+
+  limpiarCampos();
+}
   </script>
 </body>
 </html>
