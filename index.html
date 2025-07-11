@@ -38,6 +38,7 @@
       font-size: 1.1em;
       border: none;
       border-radius: 5px;
+      box-sizing: border-box;
     }
 
     .resultado {
@@ -69,9 +70,6 @@
       padding: 10px 0;
       font-size: 0.9em;
     }
-    input[type="number"] {
-  box-sizing: border-box;
-}
   </style>
 </head>
 <body>
@@ -95,7 +93,12 @@
     let mesGuardado = localStorage.getItem("mesGuardado") || new Date().getMonth();
 
     function formatearPesos(valor) {
-      return valor.toLocaleString("es-AR", { style: "currency", currency: "ARS" });
+      return valor.toLocaleString("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
     }
 
     function calcularGanancia() {
@@ -124,7 +127,7 @@
       acumuladoMes += gananciaNeta;
       localStorage.setItem("acumuladoMes", acumuladoMes);
 
-      // Mostrar
+      // Mostrar acumulado y mes anterior
       document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
 
       const mesAnterior = localStorage.getItem("mesAnterior");
@@ -133,14 +136,12 @@
       }
     }
 
-    // Mostrar valores guardados al cargar
+    // Mostrar acumulado y mes anterior al cargar
     document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
     const mesAnterior = localStorage.getItem("mesAnterior");
     if (mesAnterior) {
       document.getElementById("mesAnterior").textContent = `Mes anterior: ${formatearPesos(parseFloat(mesAnterior))}`;
     }
-return valor.toLocaleString("es-AR", { style: "currency", currency: "ARS", minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
   </script>
 </body>
 </html>
