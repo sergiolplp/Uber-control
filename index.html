@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <link rel="icon" href="icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ganancias Uber</title>
@@ -156,11 +156,11 @@
       background-color: #333;
     }
 
-#botonCalcular {
-  background-color: #006400; /* mismo verde del título */
-  color: white;
-  font-weight: bold;
-}
+    #botonCalcular {
+      background-color: #006400; /* mismo verde del título */
+      color: white;
+      font-weight: bold;
+    }
 
     footer {
       position: fixed;
@@ -173,40 +173,40 @@
       text-align: center;
     }
     body.modo-claro {
-  background-color: #fff;
-  color: #000;
-}
+      background-color: #fff;
+      color: #000;
+    }
 
-body.modo-claro input {
-  background-color: #f0f0f0;
-  color: #000;
-}
+    body.modo-claro input {
+      background-color: #f0f0f0;
+      color: #000;
+    }
 
-body.modo-claro input::placeholder {
-  color: #666;
-}
+    body.modo-claro input::placeholder {
+      color: #666;
+    }
 
-body.modo-claro .subtitulo {
-  color: green;
-}
+    body.modo-claro .subtitulo {
+      color: green;
+    }
 
-body.modo-claro footer {
-  background-color: #eee;
-  color: #000;
-}
-body.modo-claro header {
-  background-color: #eee;
-  color: #000;
-}
+    body.modo-claro footer {
+      background-color: #eee;
+      color: #000;
+    }
+    body.modo-claro header {
+      background-color: #eee;
+      color: #000;
+    }
 
-body.modo-claro .menu {
-  background-color: #eee;
-}
+    body.modo-claro .menu {
+      background-color: #eee;
+    }
 
-body.modo-claro .menu button {
-  color: #000;
-  border-bottom: 1px solid #ccc;
-}
+    body.modo-claro .menu button {
+      color: #000;
+      border-bottom: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
@@ -229,6 +229,7 @@ body.modo-claro .menu button {
     <input type="text" id="gananciaHoy" placeholder="Ganancias de hoy ($)">
     <input type="text" id="kmRecorridos" placeholder="Km recorridos">
     <input type="text" id="valorNafta" placeholder="Valor litro de nafta ($)">
+    <input type="text" id="consumoLitrosKm" placeholder="Consumo (L/km)">
 
     <div style="margin-top: 20px;"></div>
     
@@ -242,7 +243,13 @@ body.modo-claro .menu button {
   <div id="tablaMensual" class="seccion">
     <table id="historial">
       <thead>
-        <tr><th>Fecha</th><th>Km</th><th>Ganancia bruta</th><th>Ganancia neta</th></tr>
+        <tr>
+          <th>Fecha</th>
+          <th>Km</th>
+          <th>Ganancia bruta</th>
+          <th>Ganancia neta</th>
+          <th>Diferencia</th>
+        </tr>
       </thead>
       <tbody id="historialBody"></tbody>
     </table>
@@ -266,6 +273,7 @@ body.modo-claro .menu button {
   <script>
     const menu = document.getElementById("menuDesplegable");
 
+    // ---------- MENU ----------
     function toggleMenu() {
       menu.classList.toggle("abierto");
     }
@@ -278,10 +286,18 @@ body.modo-claro .menu button {
       menu.classList.remove("abierto");
     }
 
+    // ---------- MODO OSCURO/CLARO ----------
     function toggleModo() {
-  document.body.classList.toggle("modo-claro");
-}
+      document.body.classList.toggle("modo-claro");
+      localStorage.setItem("modo", document.body.classList.contains("modo-claro") ? "claro" : "oscuro");
+    }
 
+    // Restaurar modo
+    if (localStorage.getItem("modo") === "claro") {
+      document.body.classList.add("modo-claro");
+    }
+
+    // ---------- FORMATO ----------
     function formatearPesos(valor) {
       return valor.toLocaleString("es-AR", {
         style: "currency",
@@ -292,23 +308,29 @@ body.modo-claro .menu button {
     }
 
     function limpiarFormato(input) {
-  return input.replace(/\$/g, "").replace(/\./g, "").replace(",", ".").replace(/\s/g, "");
-}
+      return input.replace(/\$/g, "").replace(/\./g, "").replace(",", ".").replace(/\s/g, "");
+    }
 
+    // ---------- CALCULO ----------
     function calcularGanancia() {
       const gananciaHoy = parseFloat(limpiarFormato(document.getElementById("gananciaHoy").value)) || 0;
       const km = parseFloat(document.getElementById("kmRecorridos").value.replace(/[^\d]/g, "")) || 0;
       const valorNafta = parseFloat(limpiarFormato(document.getElementById("valorNafta").value)) || 0;
+      let consumoLitrosKm = parseFloat(document.getElementById("consumoLitrosKm").value) || parseFloat(localStorage.getItem("consumo")) || 0.08;
 
-      const consumoLitros = km * 0.08;
+      // Guardar consumo para próximas veces
+      localStorage.setItem("consumo", consumoLitrosKm);
+
+      const consumoLitros = km * consumoLitrosKm;
       const costoCombustible = consumoLitros * valorNafta;
       const gananciaNeta = gananciaHoy - costoCombustible;
 
-      const hoy = new Date().toLocaleDateString();
+      const fechaLocal = new Date().toLocaleDateString();
+      const fechaISO = new Date().toISOString().split("T")[0];
       const mesActual = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
 
       let historial = JSON.parse(localStorage.getItem("historial") || "[]");
-      historial.push({ fecha: hoy, km, bruta: gananciaHoy, neta: gananciaNeta, mes: mesActual });
+      historial.push({ fecha: fechaLocal, fechaISO, km, bruta: gananciaHoy, neta: gananciaNeta, diferencia: costoCombustible, mes: mesActual });
       localStorage.setItem("historial", JSON.stringify(historial));
 
       document.getElementById("resultado").innerHTML = `✔️ Las ganancias de hoy fueron: <span>${formatearPesos(gananciaNeta)}</span>`;
@@ -318,17 +340,41 @@ body.modo-claro .menu button {
       document.getElementById("acumuladoMes").textContent = formatearPesos(acumuladoMes);
     }
 
+    // ---------- TABLA MENSUAL ----------
     function mostrarHistorial() {
       const historial = JSON.parse(localStorage.getItem("historial") || "[]");
       const tbody = document.getElementById("historialBody");
       tbody.innerHTML = "";
+
+      let totalKm = 0, totalBruta = 0, totalNeta = 0, totalDif = 0;
+
       historial.forEach(item => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${item.fecha}</td><td>${item.km} km</td><td>${formatearPesos(item.bruta)}</td><td>${formatearPesos(item.neta)}</td>`;
+        tr.innerHTML = `<td>${item.fecha}</td>
+                        <td>${item.km} km</td>
+                        <td>${formatearPesos(item.bruta)}</td>
+                        <td>${formatearPesos(item.neta)}</td>
+                        <td>${formatearPesos(item.diferencia)}</td>`;
         tbody.appendChild(tr);
+
+        totalKm += item.km;
+        totalBruta += item.bruta;
+        totalNeta += item.neta;
+        totalDif += item.diferencia;
       });
+
+      // Fila de totales
+      const trTotal = document.createElement("tr");
+      trTotal.style.fontWeight = "bold";
+      trTotal.innerHTML = `<td>TOTALES</td>
+                           <td>${totalKm} km</td>
+                           <td>${formatearPesos(totalBruta)}</td>
+                           <td>${formatearPesos(totalNeta)}</td>
+                           <td>${formatearPesos(totalDif)}</td>`;
+      tbody.appendChild(trTotal);
     }
 
+    // ---------- REPORTES ----------
     function mostrarReportes() {
       const historial = JSON.parse(localStorage.getItem("historial") || "[]");
       const porMes = {};
@@ -344,12 +390,13 @@ body.modo-claro .menu button {
       });
     }
 
+    // ---------- EXPORTAR ----------
     function exportarCSV() {
       const historial = JSON.parse(localStorage.getItem("historial") || "[]");
       if (historial.length === 0) return alert("No hay datos para exportar.");
-      let csv = "Fecha,Km,Ganancia bruta,Ganancia neta\n";
+      let csv = "Fecha,Fecha ISO,Km,Ganancia bruta,Ganancia neta,Diferencia\n";
       historial.forEach(item => {
-        csv += `${item.fecha},${item.km},${item.bruta},${item.neta}\n`;
+        csv += `${item.fecha},${item.fechaISO},${item.km},${item.bruta},${item.neta},${item.diferencia}\n`;
       });
       descargarCSV(csv, "historial_uber.csv");
     }
@@ -377,11 +424,10 @@ body.modo-claro .menu button {
       document.body.removeChild(link);
     }
 
+    // ---------- LIMPIAR ----------
     function limpiarCampos() {
       if (confirm("¿Estás seguro de que querés limpiar los campos?")) {
-        document.getElementById("gananciaHoy").value = "";
-        document.getElementById("kmRecorridos").value = "";
-        document.getElementById("valorNafta").value = "";
+        ["gananciaHoy", "kmRecorridos", "valorNafta", "consumoLitrosKm"].forEach(id => document.getElementById(id).value = "");
         document.getElementById("resultado").textContent = "";
         document.getElementById("resultado").classList.remove("mostrar");
       }
@@ -394,7 +440,7 @@ body.modo-claro .menu button {
       }
     }
 
-    // Formato automático al salir del campo
+    // ---------- FORMATEO EN BLUR ----------
     document.getElementById("gananciaHoy").addEventListener("blur", e => {
       const val = parseFloat(limpiarFormato(e.target.value));
       if (!isNaN(val)) e.target.value = formatearPesos(val);
@@ -410,21 +456,26 @@ body.modo-claro .menu button {
       if (!isNaN(val)) e.target.value = `${val} km`;
     });
 
-    // Mostrar valores guardados al cargar
-    mostrarSeccion('inicio');
-    // Evitar letras: solo permitir números, coma y punto (para decimales)
-function soloNumeros(event) {
-  const tecla = event.key;
-  const permitido = "0123456789.,";
-  if (!permitido.includes(tecla) && tecla !== "Backspace" && tecla !== "Tab") {
-    event.preventDefault();
-  }
-}
+    // Cargar consumo si existe
+    if (localStorage.getItem("consumo")) {
+      document.getElementById("consumoLitrosKm").value = localStorage.getItem("consumo");
+    }
 
-// Asignar el filtro a los campos
-["gananciaHoy", "valorNafta", "kmRecorridos"].forEach(id => {
-  document.getElementById(id).addEventListener("keypress", soloNumeros);
-});
+    // ---------- SOLO NUMEROS ----------
+    function soloNumeros(event) {
+      const tecla = event.key;
+      const permitido = "0123456789.,";
+      if (!permitido.includes(tecla) && tecla !== "Backspace" && tecla !== "Tab") {
+        event.preventDefault();
+      }
+    }
+
+    ["gananciaHoy", "valorNafta", "kmRecorridos", "consumoLitrosKm"].forEach(id => {
+      document.getElementById(id).addEventListener("keypress", soloNumeros);
+    });
+
+    // Mostrar valores al cargar
+    mostrarSeccion('inicio');
   </script>
 </body>
 </html>
